@@ -48,6 +48,7 @@ import { useAuthStore } from '../stores/auth.store'
 import { pacienteService } from '../services/paciente.service'
 import { medicoService } from '../services/medico.service'
 import { citaService } from '../services/cita.service'
+import Swal from 'sweetalert2'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -73,10 +74,61 @@ onMounted(async () => {
   }
 })
 
-function handleLogout() {
-  authStore.logout()
-  router.push('/login')
+//funcion antigua para cerrar sesion
+/*function handleLogout() {
+if (confirm('¿Estás seguro de cerrar la sesion?')) {
+  debugger;
+  Swal.fire("SweetAlert2 is working!");
+  debugger;
+authStore.logout()
+router.push('/login')
 }
+}
+*/
+
+async function handleLogout() {
+  const swalWithBootstrapButtons = Swal.mixin({
+    customClass: {
+      confirmButton: "btn btn-success",
+      cancelButton: "btn btn-danger"
+    },
+    buttonsStyling: true
+  })
+
+  const result = await swalWithBootstrapButtons.fire({
+    title: "¿Cerrar sesión?",
+    text: "¿Estás seguro que deseas salir del sistema?",
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonText: "Sí, cerrar sesión",
+    cancelButtonText: "No, permanecer",
+    reverseButtons: true,
+    confirmButtonColor: "#ef4444",
+    cancelButtonColor: "#2563eb"
+  })
+
+  if (result.isConfirmed) {
+    await Swal.fire({
+      title: "Sesión cerrada",
+      text: "Has cerrado sesión correctamente",
+      icon: "success",
+      timer: 1500,
+      showConfirmButton: false
+    })
+    authStore.logout()
+    router.push('/login')
+  } else if (result.dismiss === Swal.DismissReason.cancel) {
+    Swal.fire({
+      title: "Cancelado",
+      text: "Sigues en el sistema",
+      icon: "info",
+      timer: 1500,
+      showConfirmButton: false
+    })
+  }
+}
+
+
 </script>
 
 <style scoped>

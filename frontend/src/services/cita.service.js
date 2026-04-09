@@ -20,5 +20,9 @@ export const citaService = {
   async eliminar(id) {
     const { data } = await api.delete(`/citas/${id}`)
     return data
+  },
+  async obtenerDisponibilidad(medicoId, fecha) {
+    const { data } = await api.get(`/citas/disponibilidad?medicoId=${medicoId}&fecha=${fecha}`)
+    return data
   }
 }

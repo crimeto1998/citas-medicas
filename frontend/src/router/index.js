@@ -33,6 +33,12 @@ const router = createRouter({
       meta: { requiresAuth: true }
     },
     {
+  path: '/disponibilidad',
+  name: 'disponibilidad',
+  component: () => import('../views/citas/DisponibilidadView.vue'),
+  meta: { requiresAuth: true }
+},
+    {
       path: '/citas',
       name: 'citas',
       component: () => import('../views/citas/CitasView.vue'),

@@ -12,6 +12,7 @@
         <router-link to="/pacientes">👥 Pacientes</router-link>
         <router-link to="/medicos">👨‍⚕️ Médicos</router-link>
         <router-link to="/citas">📅 Citas</router-link>
+        <router-link to="/disponibilidad">🗓️ Disponibilidad</router-link>
       </nav>
       <button class="logout" @click="handleLogout">🚪 Cerrar Sesión</button>
     </aside>

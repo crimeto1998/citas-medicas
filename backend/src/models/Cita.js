@@ -5,11 +5,13 @@ const citaSchema = new mongoose.Schema({
   medico: { type: mongoose.Schema.Types.ObjectId, ref: 'Medico', required: true },
   fecha: { type: Date, required: true },
   hora: { type: String, required: true },
+  duracion: { type: Number, required: true, default: 1 }, // horas: 1, 2 o 3
+  horaFin: { type: String, required: true },
   motivo: { type: String, required: true },
-  estado: { 
-    type: String, 
-    enum: ['pendiente', 'confirmada', 'cancelada', 'completada'], 
-    default: 'pendiente' 
+  estado: {
+    type: String,
+    enum: ['pendiente', 'confirmada', 'cancelada', 'completada'],
+    default: 'pendiente'
   },
   notas: { type: String, default: '' },
   creadoPor: { type: mongoose.Schema.Types.ObjectId, ref: 'Usuario' }

@@ -1,31 +1,24 @@
 <template>
   <div class="layout">
-    <aside class="sidebar">
-      <div class="sidebar-header">
-        <h2>🏥 Citas Médicas</h2>
-        <p>{{ authStore.usuario?.nombre }}</p>
-        <span class="rol">{{ authStore.usuario?.rol }}</span>
-      </div>
-      <nav>
-        <router-link to="/">📊 Dashboard</router-link>
-        <router-link to="/pacientes">👥 Pacientes</router-link>
-        <router-link to="/medicos">👨‍⚕️ Médicos</router-link>
-        <router-link to="/citas">📅 Citas</router-link>
-        <router-link to="/disponibilidad">🗓️ Disponibilidad</router-link>
-      </nav>
-      <button class="logout" @click="handleLogout">🚪 Cerrar Sesión</button>
-    </aside>
+    <SidebarNav />
 
     <main class="main-content">
-      <div class="header">
-        <h1>👥 Pacientes</h1>
-        <button class="btn-primary" @click="abrirModal()">+ Nuevo Paciente</button>
+      <div class="page-header">
+        <div>
+          <h1>Pacientes</h1>
+          <p class="page-subtitle">Gestión de pacientes registrados</p>
+        </div>
+        <button class="btn-primary" @click="abrirModal()">
+          <PlusIcon class="btn-icon" />
+          Nuevo Paciente
+        </button>
       </div>
 
-      <!-- Buscador -->
-      <input v-model="busqueda" class="buscador" placeholder="🔍 Buscar paciente..." />
+      <div class="search-bar">
+        <MagnifyingGlassIcon class="search-icon" />
+        <input v-model="busqueda" placeholder="Buscar por nombre, apellido o documento..." />
+      </div>
 
-      <!-- Tabla -->
       <div class="tabla-container">
         <table>
           <thead>
@@ -39,13 +32,24 @@
           </thead>
           <tbody>
             <tr v-for="p in pacientesFiltrados" :key="p._id">
-              <td>{{ p.nombre }} {{ p.apellido }}</td>
+              <td>
+                <div class="paciente-nombre">
+                  <div class="avatar">{{ p.nombre[0] }}{{ p.apellido[0] }}</div>
+                  {{ p.nombre }} {{ p.apellido }}
+                </div>
+              </td>
               <td>{{ p.documento }}</td>
               <td>{{ p.email }}</td>
               <td>{{ p.telefono }}</td>
               <td>
-                <button class="btn-edit" @click="abrirModal(p)">✏️</button>
-                <button v-if="authStore.esAdmin" class="btn-delete" @click="eliminar(p._id)">🗑️</button>
+                <div class="acciones">
+                  <button class="btn-edit" @click="abrirModal(p)">
+                    <PencilIcon class="action-icon" />
+                  </button>
+                  <button v-if="authStore.esAdmin" class="btn-delete" @click="eliminar(p._id)">
+                    <TrashIcon class="action-icon" />
+                  </button>
+                </div>
               </td>
             </tr>
             <tr v-if="pacientesFiltrados.length === 0">
@@ -55,10 +59,12 @@
         </table>
       </div>
 
-      <!-- Modal -->
       <div v-if="modal" class="modal-overlay" @click.self="cerrarModal">
         <div class="modal">
-          <h2>{{ editando ? 'Editar' : 'Nuevo' }} Paciente</h2>
+          <div class="modal-header">
+            <h2>{{ editando ? 'Editar' : 'Nuevo' }} Paciente</h2>
+            <button class="btn-close" @click="cerrarModal"><XMarkIcon class="close-icon" /></button>
+          </div>
           <form @submit.prevent="guardar">
             <div class="form-grid">
               <div class="form-group">
@@ -104,11 +110,18 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
 import { useAuthStore } from '../../stores/auth.store'
 import { pacienteService } from '../../services/paciente.service'
+import SidebarNav from '../../components/SidebarNav.vue'
+import Swal from 'sweetalert2'
+import {
+  PlusIcon,
+  MagnifyingGlassIcon,
+  PencilIcon,
+  TrashIcon,
+  XMarkIcon
+} from '@heroicons/vue/24/outline'
 
-const router = useRouter()
 const authStore = useAuthStore()
 const pacientes = ref([])
 const busqueda = ref('')
@@ -161,54 +174,63 @@ async function guardar() {
 }
 
 async function eliminar(id) {
-  if (confirm('¿Estás seguro de eliminar este paciente?')) {
+  const result = await Swal.fire({
+    title: '¿Eliminar paciente?',
+    text: 'Esta acción no se puede deshacer',
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonText: 'Sí, eliminar',
+    cancelButtonText: 'Cancelar',
+    confirmButtonColor: '#ef4444',
+    cancelButtonColor: '#2563eb'
+  })
+  if (result.isConfirmed) {
     await pacienteService.eliminar(id)
     pacientes.value = await pacienteService.obtenerTodos()
   }
 }
-
-function handleLogout() {
-  authStore.logout()
-  router.push('/login')
-}
 </script>
 
 <style scoped>
-.layout { display: flex; min-height: 100vh; }
-.sidebar {
-  width: 250px; background: #1e3a5f; color: white;
-  display: flex; flex-direction: column; padding: 1.5rem 1rem;
-}
-.sidebar-header { margin-bottom: 2rem; }
-.sidebar-header h2 { font-size: 1.1rem; margin-bottom: 0.3rem; }
-.sidebar-header p { font-size: 0.9rem; color: #93c5fd; }
-.rol { background: #2563eb; padding: 0.2rem 0.5rem; border-radius: 20px; font-size: 0.75rem; }
-nav { display: flex; flex-direction: column; gap: 0.5rem; flex: 1; }
-nav a { color: #cbd5e1; text-decoration: none; padding: 0.7rem 1rem; border-radius: 8px; }
-nav a:hover, nav a.router-link-active { background: #2563eb; color: white; }
-.logout { background: #ef4444; color: white; border: none; padding: 0.7rem; border-radius: 8px; cursor: pointer; }
+.layout { display: flex; min-height: 100vh; background: #f8fafc; }
 .main-content { flex: 1; padding: 2rem; }
-.header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
-.header h1 { color: #1e3a5f; }
-.buscador { width: 100%; padding: 0.6rem 1rem; border: 1px solid #d1d5db; border-radius: 8px; margin-bottom: 1rem; font-size: 1rem; }
-.tabla-container { background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+.page-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem; }
+.page-header h1 { font-size: 1.75rem; font-weight: 600; color: #0f172a; margin: 0; }
+.page-subtitle { font-size: 0.9rem; color: #64748b; margin: 0.25rem 0 0; }
+.search-bar { display: flex; align-items: center; gap: 0.75rem; background: white; border: 1px solid #e2e8f0; border-radius: 10px; padding: 0.6rem 1rem; margin-bottom: 1rem; }
+.search-bar input { border: none; outline: none; font-size: 0.95rem; width: 100%; background: transparent; color: #374151; }
+.search-icon { width: 18px; height: 18px; color: #94a3b8; flex-shrink: 0; }
+.tabla-container { background: white; border-radius: 12px; overflow: hidden; border: 1px solid #e2e8f0; }
 table { width: 100%; border-collapse: collapse; }
-th { background: #f8fafc; padding: 1rem; text-align: left; color: #374151; font-weight: 600; }
-td { padding: 1rem; border-top: 1px solid #f1f5f9; color: #374151; }
-.sin-datos { text-align: center; color: #9ca3af; }
-.btn-primary { background: #2563eb; color: white; border: none; padding: 0.6rem 1.2rem; border-radius: 8px; cursor: pointer; }
+th { background: #f8fafc; padding: 0.875rem 1rem; text-align: left; color: #64748b; font-weight: 500; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.05em; }
+td { padding: 1rem; border-top: 1px solid #f1f5f9; color: #374151; font-size: 0.95rem; }
+.paciente-nombre { display: flex; align-items: center; gap: 0.75rem; }
+.avatar { width: 34px; height: 34px; background: #dbeafe; color: #1d4ed8; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 600; flex-shrink: 0; }
+.sin-datos { text-align: center; color: #9ca3af; padding: 2rem; }
+.acciones { display: flex; gap: 0.4rem; }
+.btn-primary { display: flex; align-items: center; gap: 0.4rem; background: #2563eb; color: white; border: none; padding: 0.6rem 1.2rem; border-radius: 8px; cursor: pointer; font-size: 0.9rem; }
 .btn-primary:hover { background: #1d4ed8; }
-.btn-edit { background: #f59e0b; color: white; border: none; padding: 0.3rem 0.6rem; border-radius: 6px; cursor: pointer; margin-right: 0.3rem; }
-.btn-delete { background: #ef4444; color: white; border: none; padding: 0.3rem 0.6rem; border-radius: 6px; cursor: pointer; }
+.btn-icon { width: 16px; height: 16px; }
+.btn-edit { background: #fef3c7; color: #d97706; border: none; padding: 0.4rem; border-radius: 6px; cursor: pointer; display: flex; align-items: center; }
+.btn-edit:hover { background: #fde68a; }
+.btn-delete { background: #fee2e2; color: #dc2626; border: none; padding: 0.4rem; border-radius: 6px; cursor: pointer; display: flex; align-items: center; }
+.btn-delete:hover { background: #fecaca; }
+.action-icon { width: 16px; height: 16px; }
 .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 100; }
 .modal { background: white; padding: 2rem; border-radius: 12px; width: 100%; max-width: 600px; max-height: 90vh; overflow-y: auto; }
-.modal h2 { margin-bottom: 1.5rem; color: #1e3a5f; }
+.modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
+.modal-header h2 { color: #0f172a; margin: 0; font-size: 1.2rem; }
+.btn-close { background: none; border: none; cursor: pointer; color: #94a3b8; padding: 0.25rem; border-radius: 6px; display: flex; }
+.btn-close:hover { background: #f1f5f9; color: #374151; }
+.close-icon { width: 20px; height: 20px; }
 .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
 .form-group { display: flex; flex-direction: column; }
 .form-group.full { grid-column: span 2; }
-label { font-size: 0.9rem; color: #374151; margin-bottom: 0.3rem; }
-input, textarea { padding: 0.6rem; border: 1px solid #d1d5db; border-radius: 8px; font-size: 0.95rem; }
+label { font-size: 0.85rem; color: #374151; margin-bottom: 0.3rem; font-weight: 500; }
+input, textarea { padding: 0.6rem; border: 1px solid #d1d5db; border-radius: 8px; font-size: 0.95rem; color: #374151; }
+input:focus, textarea:focus { outline: none; border-color: #2563eb; }
 .modal-actions { display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 1.5rem; }
 .btn-cancel { background: #f1f5f9; color: #374151; border: none; padding: 0.6rem 1.2rem; border-radius: 8px; cursor: pointer; }
+.btn-cancel:hover { background: #e2e8f0; }
 .error { color: #ef4444; font-size: 0.9rem; margin-top: 0.5rem; }
 </style>

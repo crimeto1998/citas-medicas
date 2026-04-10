@@ -12,6 +12,7 @@
     "lint:eslint": "eslint . --fix --cache"
   },
   "dependencies": {
+    "@heroicons/vue": "^2.2.0",
     "axios": "^1.14.0",
     "pinia": "^3.0.4",
     "sweetalert2": "^11.26.24",
